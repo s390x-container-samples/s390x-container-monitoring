@@ -1,0 +1,64 @@
+version: '3.1'
+
+volumes:
+    prometheus_data: {}
+    grafana_data: {}
+
+networks:
+  front-tier:
+  back-tier:
+
+services:
+
+  node-exporter:
+    image: ${node_exporter_image}
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command: 
+      - '--path.procfs=/host/proc' 
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    ports:
+      - 9100:9100
+    expose:
+      - "9100"
+    networks:
+      - back-tier
+    restart: always
+
+  alertmanager:
+    image: ${alertmanager_image}
+    ports:
+      - 9093:9093
+        #    volumes:
+        # - ./alertmanager/:/etc/alertmanager/
+    networks:
+      - back-tier
+    expose:
+      - "9093"
+    restart: always
+    #  command:
+    #  - '--config.file=/etc/alertmanager/config.yml'
+    #  - '--storage.path=/alertmanager'
+#    deploy:
+#      placement:
+#        constraints:
+#          - node.hostname == ${HOSTNAME}
+  cadvisor:
+    image: ${cadvisor_image}
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - 8080:8080
+    expose:
+      - "8080"
+    networks:
+      - back-tier
+    restart: always
+

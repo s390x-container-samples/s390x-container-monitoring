@@ -1,0 +1,48 @@
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+  # scrape_timeout is set to the global default (10s).
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+      monitor: 'lab-monitor'
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first.rules"
+  # - "second.rules"
+# alert
+alerting:
+  alertmanagers:
+  - scheme: http
+    static_configs:
+    - targets: ["MACHINE_IP:9093"]
+      
+# A scrape configuration containing exactly one endpoint to scrape:
+scrape_configs:
+#prometheus
+  - job_name: 'prometheus'
+    # Override the global default and scrape targets from this job every 10 seconds.
+    scrape_interval: 5s
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: ['MACHINE_IP:9090']
+        labels:
+          group: 'prometheus'
+#cadvisor      
+  - job_name: 'cadvisor'
+
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+    static_configs:
+    - targets: ["MACHINE_IP:8080"]
+#node-exporter
+  - job_name: 'node-exporter'
+
+    # Override the global default and scrape targets from this job every 5 seconds.
+    scrape_interval: 5s
+    static_configs:
+    - targets: ["MACHINE_IP:9100"]
